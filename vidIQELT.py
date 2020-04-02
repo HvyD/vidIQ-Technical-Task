@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+
+#imports
+import sys
+import os
+import configparser
+from airflow import DAG
+from datetime import datetime, timedelta
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.contrib.operators.aws_athena_operator import AWSAthenaOperator
+from airflow.operators.s3_file_transform_operator import S3FileTransformOperator
+import airflow.hooks.S3_hook
+import create_tables
+from create_tables import query
+
+
+#Set Key and pass info from replace items in 'dl.cfg' file
+config = configparser.ConfigParser()
+config.read('dl.cfg')
+
+os.environ['AWS_ACCESS_KEY_ID'] = config['AWS']['AWS_ACCESS_KEY_ID']
+os.environ['AWS_SECRET_ACCESS_KEY'] = config['AWS']['AWS_SECRET_ACCESS_KEY']
+
+# First Task to put local file up into S3 bucket and log checks
+def upload_file_to_S3_with_hook(filename, key, bucket_name, replace):
+    hook = airflow.hooks.S3_hook.S3Hook('my_conn_S3')
+    hook.load_file(filename, key, bucket_name,replace)
+
+default_args = {
+    "owner": "HvyD",
+    "depends_on_past": True,
+    "start_date":datetime.now()
+}
+
+# S3bucket upload dag and systems log check/greatings set to only once
+S3dag = DAG("S3_Uploader", default_args=default_args, schedule_interval= None)
+
+
+fire_up = BashOperator(task_id="test", bash_command="echo 'Hi vidIQ -Thanks for this fun project!!'", dag=S3dag)
+
+put_to_S3bucket = PythonOperator(
+    task_id='upload_to_S3',
+    python_callable=upload_file_to_S3_with_hook,
+    op_kwargs={
+        'filename': 'data/vidIQ_TechTask/data/part-00000-4dd69b87-151c-40c8-9c4f-c20a980920e2-c000.snappy.parquet',
+        'key': 'part-00000-4dd69b87-151c-40c8-9c4f-c20a980920e2-c000.snappy.parquet',
+        'bucket_name': config['S3']['BUCKET_NAME'],
+        'replace':'True'
+    },
+    dag=S3dag)
+
+
+
+#Task 2 and 3. Set up partitioned Athena DataBase and move back to S3 buckt. 
+
+class XComEnabledAWSAthenaOperator(AWSAthenaOperator):
+    '''
+    The Class sets auto path and log for Athen Operator, since it is not native.
+    '''
+    
+    def execute(self, context):
+        super(XComEnabledAWSAthenaOperator, self).execute(context)
+        # this gets `xcom_push`(ed)
+        return self.query_execution_id
+    
+# database query Dag set to dailey as per requirments
+with DAG(dag_id='partitioned_athena_and_S3move',
+         schedule_interval ='@dailey',
+         start_date=datetime.now()) as partit_dag:
+
+    run_query = XComEnabledAWSAthenaOperator(
+        task_id = 'run_query',
+        query = query.create_patit_table,
+        output_location= config['S3']['OUTPUT_LOCATION'],
+        database = config['S3']['DATABASE']
+    )
+    
+    move_results = S3FileTransformOperator(
+        task_id = 'move_results',
+        source_s3_key = config['S3']['SOURCE_S3_KEY'],
+        dest_s3_key = config['S3']['DEST_S3_KEY'],
+        transform_script = '/bin/cp'
+    )
+    
+move_results.set_upstream(run_query)
+
+#Set workflow Stream
+test >> upload_to_s3
+run_query >> move_results

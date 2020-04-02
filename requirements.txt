@@ -1,0 +1,4 @@
+ipykernel
+configparser
+apache-airflow
+
