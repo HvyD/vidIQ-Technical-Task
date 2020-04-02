@@ -37,10 +37,10 @@ default_args = {
 S3dag = DAG("S3_Uploader", default_args=default_args, schedule_interval= None)
 
 
-fire_up = BashOperator(task_id="test", bash_command="echo 'Hi vidIQ -Thanks for this fun project!!'", dag=S3dag)
+fire_up = BashOperator(task_id="fire_up", bash_command="echo 'Hi vidIQ -Thanks for this fun project!!'", dag=S3dag)
 
 put_to_S3bucket = PythonOperator(
-    task_id='upload_to_S3',
+    task_id='put_to_S3bucket',
     python_callable=upload_file_to_S3_with_hook,
     op_kwargs={
         'filename': 'data/vidIQ_TechTask/data/part-00000-4dd69b87-151c-40c8-9c4f-c20a980920e2-c000.snappy.parquet',
@@ -86,5 +86,5 @@ with DAG(dag_id='partitioned_athena_and_S3move',
 move_results.set_upstream(run_query)
 
 #Set workflow Stream
-test >> upload_to_s3
+fire_up >> put_to_S3bucket
 run_query >> move_results
