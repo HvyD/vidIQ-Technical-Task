@@ -45,6 +45,7 @@
 
 
 --Alternatively you can just export via cli:
+
 export AIRFLOW_CONN_AWS_DEFAULT="s3://$AWS_CLIENT_ID:$AWS_CLIENT_SECRET@my-bucket?region_name=$AWS_REGION"
 export AWS_DEFAULT_REGION=$AWS_REGION
 export AWS_ACCESS_KEY_ID=$AWS_CLIENT_ID
