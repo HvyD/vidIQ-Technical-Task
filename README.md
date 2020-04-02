@@ -4,7 +4,9 @@
 
 
 <b>1.<b/>	Load attached data file to S3 Bucket
+
 <b>2.<b/>	Implement a Partitioned Athena Database creating its schema using python 
+    
 <b>3.<b/>	Use Airflow to add new partitions for Daily events
     
 
