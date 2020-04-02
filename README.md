@@ -1,6 +1,6 @@
 # vidIQ Technical Assesment
 
-###The task at hand are: 
+### The task at hand are: 
 
 
 <b>1.<b/>	Load attached data file to S3 Bucket
