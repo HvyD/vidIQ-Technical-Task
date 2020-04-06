@@ -6,7 +6,6 @@ import os
 import configparser
 from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.aws_athena_operator import AWSAthenaOperator
 from airflow.operators.s3_file_transform_operator import S3FileTransformOperator
 import airflow.hooks.S3_hook
