@@ -11,7 +11,7 @@ config.read('dl.cfg')
 
 
 ACCESS_KEY = config['AWS']['AWS_ACCESS_KEY_ID']
-SECRET_KEY = config['AWS']['AWS_SECRET_ACCESS_KEY'])
+SECRET_KEY = config['AWS']['AWS_SECRET_ACCESS_KEY']
 local_file = config['FILES']['LOCAL_FILE']
 bucket_name =  config['S3']['BUCKET_NAME']
 s3_file = config['FILES']['S3_FILE']
