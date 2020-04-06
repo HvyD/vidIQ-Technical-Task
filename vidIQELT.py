@@ -54,5 +54,6 @@ with DAG(dag_id='partitioned_athena_and_S3move',
     
 move_results.set_upstream(run_query)
 
+
 #Set workflow Stream
 run_query >> move_results
