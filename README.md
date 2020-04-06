@@ -38,7 +38,7 @@
  
 
 ## Usage
-1. First Run upload_to_S3.py then vidIQELT.py 
+1. First Run upload_to_aws.py then vidIQELT.py 
 2. Access Airflow UI at your localhost
 3. Create Airflow Connections
 4. Run dags in Airflow UI
