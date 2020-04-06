@@ -1,4 +1,5 @@
 ipykernel
 configparser
+boto3
 apache-airflow
 
